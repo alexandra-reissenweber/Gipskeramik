@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verwaltung – Gießformen</title>
+<style>
+:root{--bg:#f6f4f1;--card:#fff;--ink:#22201d;--muted:#6d6660;--line:#e3ddd6;--accent:#7a6a55;--accent-d:#5c4f3f;--stop:#b3392f;--r:12px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 20px;position:sticky;top:0;z-index:10;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header h1{font-size:19px;margin:0;flex:1}
+main{max-width:1050px;margin:0 auto;padding:20px}
+section{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:18px}
+h2{font-size:18px;margin:0 0 12px}
+h3{font-size:15px;margin:18px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+label{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.reihe{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--accent-d)}
+.btn.sek{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.rot{background:#fff;color:var(--stop);border:1px solid #e8c4c0}
+.form{border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px;display:grid;grid-template-columns:120px 1fr;gap:14px}
+.form .bild{width:120px;height:120px;border-radius:10px;background:#ece7e1 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:#b6ada3;cursor:pointer;font-size:13px;text-align:center;padding:6px;border:1px dashed #cfc7bd}
+.form .felder{display:grid;gap:10px}
+.pkt{display:inline-block;background:#efe9e1;border-radius:999px;padding:3px 12px;font-weight:700;font-size:14px}
+.kat{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.kat input{flex:1}
+.mini{font-size:13px;color:var(--muted);margin:4px 0 0}
+.aus{opacity:.5}
+#qr{margin-top:12px}
+#qr img,#qr canvas{background:#fff;padding:10px;border:1px solid var(--line);border-radius:8px}
+.tag{position:fixed;right:18px;bottom:18px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:9px;opacity:0;transition:.3s;pointer-events:none}
+.tag.an{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>Verwaltung – Gießformen</h1>
+  <button class="btn sek" id="btnImport">Daten laden…</button>
+  <input type="file" id="fileImport" accept=".json" hidden>
+  <button class="btn" id="btnExport">formen.json speichern</button>
+  <button class="btn sek" id="btnEinDatei">Als eine Datei…</button>
+  <input type="file" id="fileVorlage" accept=".html" hidden>
+</header>
+
+<main>
+<section>
+  <h2>Workshop</h2>
+  <div class="reihe">
+    <div><label for="w_titel">Titel</label><input id="w_titel" placeholder="Gipsgießen im Mitreißwerk"></div>
+    <div><label for="w_code">Zugangscode (leer = kein Code)</label><input id="w_code" placeholder="GIPS24"></div>
+    <div><label for="w_start">Freigeschaltet ab</label><input id="w_start" type="date"></div>
+    <div><label for="w_ende">Gesperrt nach</label><input id="w_ende" type="date"></div>
+  </div>
+  <div class="reihe" style="margin-top:12px">
+    <div><label for="w_budget">Gipspulver pro Person (g)</label><input id="w_budget" type="number" value="700"></div>
+    <div><label for="w_tol">Toleranz (%)</label><input id="w_tol" type="number" value="10"></div>
+    <div><label for="w_ppg">Gramm pro Punkt</label><input id="w_ppg" type="number" value="100"></div>
+  </div>
+  <p class="mini" id="budgetInfo"></p>
+
+  <h3>Schwarz einfärben (Powder Compound)</h3>
+  <div class="reihe">
+    <div><label for="w_sw_proz">Powder Compound (% vom Gießpulver)</label><input id="w_sw_proz" type="number" min="0" step="1" value="30"></div>
+    <div><label for="w_sw_verh">Verhältnis Pulver : Wasser</label><input id="w_sw_verh" type="number" min="0.5" step="0.1" value="2.5"></div>
+  </div>
+  <p class="mini" id="schwarzInfo"></p>
+  <p class="mini">Herstellerangabe: ca. 30 % Powder Compound bezogen auf die Gießpulvermenge, dünner angerührt im
+  Verhältnis 2,5 : 1. Das Compound zählt bei der Wassermenge <b>nicht</b> mit – gerechnet wird nur mit dem weißen
+  Gießpulver. In der Kunden-App liegt dafür ein Umschalter samt Rechner unter „Meine Auswahl".</p>
+
+  <div style="margin-top:12px"><label for="w_hinweis">Hinweis für Kunden (optional)</label><input id="w_hinweis" placeholder="Wähle deine Formen – du hast 7 Punkte."></div>
+  <div style="margin-top:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+    <div>
+      <label>Logo</label>
+      <div id="logoBox" style="width:180px;height:80px;border:1px dashed #cfc7bd;border-radius:10px;background:#fff center/contain no-repeat;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#b6ada3;font-size:13px">Logo wählen</div>
+      <input type="file" id="fileLogo" accept="image/*" hidden>
+    </div>
+    <button class="btn sek" id="btnLogoWeg">Logo entfernen</button>
+    <p class="mini" style="flex:1;min-width:180px">Erscheint oben in der Kunden-App und auf dem Ausdruck. PNG mit transparentem Hintergrund sieht am besten aus.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Kategorien</h2>
+  <div id="kats"></div>
+  <button class="btn sek" id="btnKat">+ Kategorie</button>
+</section>
+
+<section>
+  <h2>Gießformen <span class="mini" id="anzForm"></span></h2>
+  <div id="formen"></div>
+  <button class="btn" id="btnForm">+ Neue Form</button>
+</section>
+
+<section>
+  <h2>QR-Code</h2>
+  <label for="q_url">Adresse der Kunden-Seite</label>
+  <input id="q_url" placeholder="https://deine-seite.netlify.app/gips-workshop.html">
+  <p class="mini">Der Zugangscode wird automatisch angehängt – der QR-Code schaltet die Seite direkt frei.</p>
+  <button class="btn sek" id="btnQR" style="margin-top:8px">QR-Code erzeugen</button>
+  <div id="qr"></div>
+</section>
+
+<section>
+  <h2>Reservierungen (Supabase)</h2>
+  <p class="mini" style="margin-top:0">Nur nötig, wenn die Formen für alle Kundinnen gemeinsam reserviert werden sollen. Leer lassen = jedes Handy rechnet für sich.</p>
+  <div class="reihe">
+    <div><label for="sb_url">Project URL</label><input id="sb_url" placeholder="https://xxxx.supabase.co"></div>
+    <div><label for="sb_key">anon public Key</label><input id="sb_key" placeholder="eyJhbGciOi..."></div>
+  </div>
+  <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn sek" id="btnTest">Verbindung testen</button>
+    <button class="btn sek" id="btnLade">Übersicht aktualisieren</button>
+    <span style="flex:1"></span>
+    <button class="btn sek" id="btnDurchlauf">Neuer Durchlauf</button>
+    <button class="btn rot" id="btnReset">Alles zurücksetzen</button>
+  </div>
+  <p class="mini" id="sbInfo"></p>
+  <div id="sbListe"></div>
+</section>
+
+<section>
+  <h2>Veröffentlichen</h2>
+  <ol style="margin:0;padding-left:20px">
+    <li>Oben rechts <b>formen.json speichern</b> klicken.</li>
+    <li>Die Datei <code>formen.json</code> zusammen mit <code>gips-workshop.html</code> auf deine Seite hochladen (Netlify/GitHub, gleicher Ordner).</li>
+    <li>QR-Code ausdrucken – fertig.</li>
+  </ol>
+  <p class="mini">Alles was du hier eingibst, bleibt zusätzlich in diesem Browser gespeichert.</p>
+  <h2 style="margin-top:18px">Ohne Hochladen testen</h2>
+  <p style="margin:0">Klick auf <b>Als eine Datei…</b> und wähle <code>gips-workshop.html</code> aus. Du bekommst
+  <code>gips-workshop-fertig.html</code> mit allen Formen und Bildern darin – die lässt sich per Doppelklick öffnen,
+  auf einen USB-Stick legen oder verschicken. Nur zum Testen praktisch; für den QR-Code brauchst du trotzdem eine Internetadresse.</p>
+</section>
+</main>
+
+<div class="tag" id="tag"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const SPEICHER = 'gips_admin_daten';
+const STANDARD = {budget_g:700, toleranz_prozent:10, punkt_gramm:100, schwarz_prozent:30, schwarz_verhaeltnis:2.5};
+let D = { workshop:Object.assign({}, STANDARD), kategorien:[], formen:[] };
+
+const g = id => document.getElementById(id);
+const nz = n => Number(n)||0;
+const fz = (n,k) => nz(n).toLocaleString('de-DE',{maximumFractionDigits:k===undefined?2:k});
+const uid = () => 'f'+Math.random().toString(36).slice(2,9);
+function tag(t){ const e=g('tag'); e.textContent=t; e.classList.add('an'); setTimeout(()=>e.classList.remove('an'),1800); }
+
+// Punkte aus Gramm: 1 Punkt = 100 g, 0,5er-Schritte, Rest ab 50 g wird zum halben Punkt
+function punkteAusGramm(gramm, proPunkt){
+  const stufe = (nz(proPunkt)||100)/2;
+  return Math.floor(nz(gramm)/stufe + 1e-9)/2;
+}
+
+/* ---------- laden / speichern ---------- */
+function laden(){
+  try{ const d = JSON.parse(localStorage.getItem(SPEICHER)); if(d) D = d; }catch(e){}
+  D.workshop = Object.assign({}, STANDARD, D.workshop||{});
+  D.kategorien = D.kategorien||[]; D.formen = D.formen||[];
+  ['titel','code','start','ende','hinweis'].forEach(k => g('w_'+k).value = D.workshop[k]||'');
+  g('w_budget').value = D.workshop.budget_g; g('w_tol').value = D.workshop.toleranz_prozent; g('w_ppg').value = D.workshop.punkt_gramm;
+  g('w_sw_proz').value = D.workshop.schwarz_prozent;
+  g('w_sw_verh').value = D.workshop.schwarz_verhaeltnis;
+  g('q_url').value = D.workshop.url||'';
+  g('sb_url').value = (D.workshop.supabase||{}).url||'';
+  g('sb_key').value = (D.workshop.supabase||{}).key||'';
+  const lb = g('logoBox');
+  lb.style.backgroundImage = D.workshop.logo ? `url('${D.workshop.logo}')` : '';
+  lb.textContent = D.workshop.logo ? '' : 'Logo wählen';
+  zeichneKats(); zeichneFormen(); budgetInfo(); schwarzInfo();
+}
+function sichern(){ try{ localStorage.setItem(SPEICHER, JSON.stringify(D)); }catch(e){ tag('Speicher voll – Bilder kleiner halten'); } }
+function ws(){
+  const w = D.workshop;
+  w.titel=g('w_titel').value; w.code=g('w_code').value.trim().toUpperCase(); g('w_code').value=w.code;
+  w.start=g('w_start').value; w.ende=g('w_ende').value; w.hinweis=g('w_hinweis').value;
+  w.budget_g=nz(g('w_budget').value)||700; w.toleranz_prozent=nz(g('w_tol').value); w.punkt_gramm=nz(g('w_ppg').value)||100;
+  w.schwarz_prozent = nz(g('w_sw_proz').value)||30;
+  w.schwarz_verhaeltnis = nz(g('w_sw_verh').value)||2.5;
+  w.url=g('q_url').value.trim();
+  budgetInfo(); schwarzInfo(); zeichneFormen(); sichern();
+}
+['w_titel','w_code','w_start','w_ende','w_hinweis','w_budget','w_tol','w_ppg','w_sw_proz','w_sw_verh','q_url'].forEach(id => g(id).addEventListener('change', ws));
+
+function budgetInfo(){
+  const w = D.workshop, p = w.budget_g/w.punkt_gramm, pm = p*(1+w.toleranz_prozent/100);
+  g('budgetInfo').textContent = `Ergibt ${fz(p)} Punkte pro Person – mit Toleranz maximal ${fz(pm)} Punkte (${fz(w.budget_g*(1+w.toleranz_prozent/100),0)} g).`;
+}
+function schwarzInfo(){
+  const w = D.workshop, proz = nz(w.schwarz_prozent)||30, verh = nz(w.schwarz_verhaeltnis)||2.5;
+  const bsp = 300;
+  g('schwarzInfo').innerHTML = `Beispiel: <b>${bsp} g</b> weißes Gießpulver → <b>${fz(bsp*proz/100,0)} g</b> Powder Compound
+    + <b>${fz(bsp/verh,0)} ml</b> Wasser.`;
+}
+
+/* ---------- Kategorien ---------- */
+function zeichneKats(){
+  const el = g('kats'); el.innerHTML='';
+  D.kategorien.sort((a,b)=>nz(a.sort)-nz(b.sort));
+  D.kategorien.forEach((k,i) => {
+    const d = document.createElement('div'); d.className='kat';
+    d.innerHTML = `<input value="" placeholder="Name der Kategorie">
+      <button class="btn sek" title="nach oben">↑</button>
+      <button class="btn sek" title="nach unten">↓</button>
+      <button class="btn rot">Löschen</button>`;
+    const [inp,up,dn,del] = [d.querySelector('input'),...d.querySelectorAll('button')];
+    inp.value = k.name||'';
+    inp.onchange = () => { k.name = inp.value; sichern(); zeichneFormen(); };
+    up.onclick = () => { if(i>0){ tausch(i,i-1); } };
+    dn.onclick = () => { if(i<D.kategorien.length-1){ tausch(i,i+1); } };
+    del.onclick = () => { if(confirm('Kategorie löschen? Die Formen bleiben erhalten.')){ D.kategorien.splice(i,1); sichern(); zeichneKats(); zeichneFormen(); } };
+    el.appendChild(d);
+  });
+  if(!D.kategorien.length) el.innerHTML = '<p class="mini">Noch keine Kategorien – ohne Kategorien erscheinen alle Formen in einer Liste.</p>';
+}
+function tausch(a,b){ const t=D.kategorien[a].sort; D.kategorien[a].sort=D.kategorien[b].sort; D.kategorien[b].sort=t; [D.kategorien[a],D.kategorien[b]]=[D.kategorien[b],D.kategorien[a]]; D.kategorien.forEach((k,i)=>k.sort=i+1); sichern(); zeichneKats(); }
+g('btnKat').onclick = () => { D.kategorien.push({id:uid(), name:'Neue Kategorie', sort:D.kategorien.length+1}); sichern(); zeichneKats(); zeichneFormen(); };
+
+/* ---------- Formen ---------- */
+function zeichneFormen(){
+  const el = g('formen'); el.innerHTML='';
+  D.formen.sort((a,b)=>nz(a.sort)-nz(b.sort));
+  g('anzForm').textContent = D.formen.length ? `(${D.formen.length})` : '';
+  D.formen.forEach((f,i) => el.appendChild(formKarte(f,i)));
+  if(!D.formen.length) el.innerHTML = '<p class="mini">Noch keine Formen angelegt.</p>';
+}
+function formKarte(f,i){
+  const d = document.createElement('div'); d.className = 'form' + (f.aktiv===false?' aus':'');
+  const kats = D.kategorien.map(k => `<option value="${k.id}">${k.name||'(ohne Namen)'}</option>`).join('');
+  d.innerHTML = `
+    <div>
+      <div class="bild">${f.bild?'':'Bild wählen'}</div>
+      <input type="file" accept="image/*" hidden>
+      <button class="btn sek" style="width:100%;margin-top:8px;padding:6px">Bild entfernen</button>
+    </div>
+    <div class="felder">
+      <div class="reihe">
+        <div style="grid-column:span 2"><label>Name</label><input class="f_name" value=""></div>
+        <div><label>Kategorie</label><select class="f_kat"><option value="">– keine –</option>${kats}</select></div>
+      </div>
+      <div class="reihe">
+        <div><label>Gipspulver (g)</label><input class="f_gips" type="number" min="0" step="10"></div>
+        <div><label>Wasser (ml)</label><input class="f_wasser" type="number" min="0" step="10"></div>
+        <div><label>Punkte</label><input class="f_pkt" type="number" step="0.5" placeholder="automatisch"></div>
+        <div><label>Anzahl vorhanden</label><input class="f_bestand" type="number" min="0" step="1" placeholder="unbegrenzt"></div>
+        <div><label>&nbsp;</label><span class="pkt f_anzeige"></span></div>
+      </div>
+      <div><label>Hinweis für Kunden (optional)</label><input class="f_hinweis" value=""></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <label style="margin:0;display:flex;gap:6px;align-items:center;color:var(--ink)"><input type="checkbox" class="f_aktiv" style="width:auto"> im Workshop sichtbar</label>
+        <span style="flex:1"></span>
+        <button class="btn sek f_up">↑</button><button class="btn sek f_dn">↓</button>
+        <button class="btn rot f_del">Löschen</button>
+      </div>
+    </div>`;
+  const bild = d.querySelector('.bild'), datei = d.querySelector('input[type=file]');
+  if(f.bild) bild.style.backgroundImage = `url('${f.bild}')`;
+  bild.onclick = () => datei.click();
+  datei.onchange = () => bildLaden(datei.files[0], f);
+  d.querySelector('.btn.sek').onclick = () => { delete f.bild; sichern(); zeichneFormen(); };
+
+  const q = s => d.querySelector(s);
+  q('.f_name').value = f.name||''; q('.f_kat').value = f.kategorie||'';
+  q('.f_gips').value = f.gips_g??''; q('.f_wasser').value = f.wasser_ml??'';
+  q('.f_pkt').value = (f.punkte===undefined||f.punkte===null||f.punkte==='')?'':f.punkte;
+  q('.f_bestand').value = (f.bestand===undefined||f.bestand===null||f.bestand==='')?'':f.bestand;
+  q('.f_hinweis').value = f.hinweis||''; q('.f_aktiv').checked = f.aktiv!==false;
+  anzeige();
+
+  function anzeige(){
+    const auto = punkteAusGramm(f.gips_g, D.workshop.punkt_gramm);
+    const eff = (f.punkte===undefined||f.punkte===null||f.punkte==='') ? auto : nz(f.punkte);
+    q('.f_anzeige').textContent = `${fz(eff)} Punkte`;
+    q('.f_pkt').placeholder = 'automatisch: '+fz(auto);
+  }
+  q('.f_name').onchange = e => { f.name=e.target.value; sichern(); };
+  q('.f_kat').onchange = e => { f.kategorie=e.target.value; sichern(); };
+  q('.f_gips').oninput = e => { f.gips_g=nz(e.target.value); anzeige(); sichern(); };
+  q('.f_wasser').oninput = e => { f.wasser_ml=nz(e.target.value); sichern(); };
+  q('.f_pkt').oninput = e => { f.punkte = e.target.value===''?null:nz(e.target.value); anzeige(); sichern(); };
+  q('.f_bestand').oninput = e => { f.bestand = e.target.value===''?null:Math.max(0,Math.floor(nz(e.target.value))); sichern(); };
+  q('.f_hinweis').onchange = e => { f.hinweis=e.target.value; sichern(); };
+  q('.f_aktiv').onchange = e => { f.aktiv=e.target.checked; sichern(); zeichneFormen(); };
+  q('.f_up').onclick = () => vertausche(i,i-1);
+  q('.f_dn').onclick = () => vertausche(i,i+1);
+  q('.f_del').onclick = () => { if(confirm('Form „'+(f.name||'')+'" löschen?')){ D.formen.splice(i,1); sichern(); zeichneFormen(); } };
+  return d;
+}
+function vertausche(a,b){ if(b<0||b>=D.formen.length) return; [D.formen[a],D.formen[b]]=[D.formen[b],D.formen[a]]; D.formen.forEach((f,i)=>f.sort=i+1); sichern(); zeichneFormen(); }
+g('btnForm').onclick = () => { D.formen.push({id:uid(), name:'', kategorie:D.kategorien[0]?.id||'', gips_g:100, wasser_ml:70, punkte:null, bestand:null, aktiv:true, sort:D.formen.length+1}); sichern(); zeichneFormen(); window.scrollTo(0,document.body.scrollHeight); };
+
+/* ---------- Bild verkleinern ---------- */
+function bildLaden(file, f){
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 700, s = Math.min(1, max/Math.max(img.width,img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
+      ctx.drawImage(img,0,0,c.width,c.height);
+      f.bild = c.toDataURL('image/jpeg', 0.72);
+      sichern(); zeichneFormen(); tag('Bild übernommen');
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+
+/* ---------- Supabase ---------- */
+function sbCfg(){ return D.workshop.supabase || {}; }
+function sbSpeichern(){
+  const url = g('sb_url').value.trim(), key = g('sb_key').value.trim();
+  if(url || key) D.workshop.supabase = {url:url.replace(/\/+$/,''), key};
+  else delete D.workshop.supabase;
+  sichern();
+}
+g('sb_url').addEventListener('change', sbSpeichern);
+g('sb_key').addEventListener('change', sbSpeichern);
+
+async function rpc(fn, params){
+  sbSpeichern();
+  const c = sbCfg();
+  if(!c.url || !c.key) throw new Error('Project URL und Key fehlen.');
+  const r = await fetch(c.url + '/rest/v1/rpc/' + fn, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':c.key,'Authorization':'Bearer '+c.key},
+    body: JSON.stringify(params)
+  });
+  const t = await r.text();
+  if(!r.ok) throw new Error(t);
+  return t ? JSON.parse(t) : null;
+}
+function code(){ return (g('w_code').value.trim() || 'OHNE-CODE').toUpperCase(); }
+
+g('btnTest').onclick = async () => {
+  g('sbInfo').textContent = 'teste…';
+  try{
+    const d = await rpc('gips_lage', {p_code:code(), p_geraet:'test-verwaltung'});
+    g('sbInfo').textContent = `Verbindung steht. Aktueller Durchlauf: ${d.durchlauf}. Workshop-Code: ${code()}`;
+  }catch(e){ g('sbInfo').textContent = 'Fehler: ' + String(e.message).slice(0,300); }
+};
+
+g('btnLade').onclick = uebersicht;
+async function uebersicht(){
+  g('sbInfo').textContent = 'lade…';
+  try{
+    const rows = await rpc('gips_uebersicht', {p_code:code()});
+    const lage = await rpc('gips_lage', {p_code:code(), p_geraet:'test-verwaltung'});
+    const name = id => (D.formen.find(f=>f.id===id)||{}).name || id;
+    const gips = id => nz((D.formen.find(f=>f.id===id)||{}).gips_g);
+    const kunden = {};
+    rows.forEach(r => { (kunden[r.kunde+'|'+r.geraet] = kunden[r.kunde+'|'+r.geraet] || []).push(r); });
+    let h = `<p class="mini">Aktueller Durchlauf: <b>${lage.durchlauf}</b> · ${rows.length} Reservierungen</p>`;
+    if(!rows.length) h += '<p class="mini">Noch nichts reserviert.</p>';
+    Object.keys(kunden).sort().forEach(k => {
+      const liste = kunden[k], summe = liste.reduce((s,r)=>s+gips(r.form_id),0);
+      h += `<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px">
+        <b>${k.split('|')[0] || '(ohne Namen)'}</b> <span class="mini">· ${fz(summe,0)} g Gips gesamt</span>
+        <ul style="margin:6px 0 0;padding-left:20px">
+        ${liste.map(r=>`<li>${name(r.form_id)} <span class="mini">(${r.durchlauf}. Durchlauf, ${new Date(r.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})})</span></li>`).join('')}
+        </ul></div>`;
+    });
+    g('sbListe').innerHTML = h;
+    g('sbInfo').textContent = '';
+  }catch(e){ g('sbInfo').textContent = 'Fehler: ' + String(e.message).slice(0,300); }
+}
+
+g('btnDurchlauf').onclick = async () => {
+  if(!confirm('Neuen Durchlauf starten?\nAlle Formen sind danach wieder frei. Die Punkte der Kundinnen laufen weiter.')) return;
+  try{ const d = await rpc('gips_neuer_durchlauf', {p_code:code()}); await uebersicht(); g('sbInfo').textContent = 'Jetzt läuft Durchlauf '+d+'. Alle Formen sind wieder frei.'; }
+  catch(e){ g('sbInfo').textContent = 'Fehler: ' + String(e.message).slice(0,300); }
+};
+g('btnReset').onclick = async () => {
+  if(!confirm('Wirklich ALLE Reservierungen für den Code '+code()+' löschen?\nDas macht man vor einem neuen Workshop.')) return;
+  try{ await rpc('gips_reset', {p_code:code()}); await uebersicht(); g('sbInfo').textContent = 'Zurückgesetzt – der Workshop startet wieder bei Durchlauf 1.'; }
+  catch(e){ g('sbInfo').textContent = 'Fehler: ' + String(e.message).slice(0,300); }
+};
+
+/* ---------- Logo ---------- */
+g('logoBox').onclick = () => g('fileLogo').click();
+g('btnLogoWeg').onclick = () => { delete D.workshop.logo; sichern(); laden(); };
+g('fileLogo').onchange = () => {
+  const file = g('fileLogo').files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 480, s = Math.min(1, max/Math.max(img.width,img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      D.workshop.logo = c.toDataURL('image/png');   // PNG: Transparenz bleibt erhalten
+      sichern(); laden(); tag('Logo übernommen');
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
+  g('fileLogo').value = '';
+};
+
+/* ---------- Import / Export ---------- */
+g('btnImport').onclick = () => g('fileImport').click();
+g('fileImport').onchange = () => {
+  const f = g('fileImport').files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => { try{ D = JSON.parse(r.result); sichern(); laden(); tag('Daten geladen'); }catch(e){ alert('Datei konnte nicht gelesen werden.'); } };
+  r.readAsText(f);
+};
+g('btnExport').onclick = () => {
+  ws();
+  const blob = new Blob([JSON.stringify(D,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'formen.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  tag('formen.json gespeichert');
+};
+
+/* ---------- Ein-Datei-Export (funktioniert auch ohne Server) ---------- */
+g('btnEinDatei').onclick = () => { ws(); alert('Wähle jetzt die Datei gips-workshop.html aus.\nDu bekommst danach eine fertige Datei mit allen Formen darin – die kannst du direkt doppelklicken oder verschicken.'); g('fileVorlage').click(); };
+g('fileVorlage').onchange = () => {
+  const f = g('fileVorlage').files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let html = r.result;
+    const marke = /const EINGEBETTET = [\s\S]*?;\s*\/\* DATEN-PLATZHALTER[\s\S]*?\*\//;
+    const neu = 'const EINGEBETTET = ' + JSON.stringify(D) + '; /* DATEN-PLATZHALTER */';
+    if(marke.test(html)) html = html.replace(marke, () => neu);
+    else if(/const EINGEBETTET = null;/.test(html)) html = html.replace('const EINGEBETTET = null;', () => neu);
+    else { alert('Das sieht nicht nach gips-workshop.html aus.'); return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([html],{type:'text/html'}));
+    a.download = 'gips-workshop-fertig.html'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    tag('gips-workshop-fertig.html gespeichert');
+  };
+  r.readAsText(f);
+  g('fileVorlage').value = '';
+};
+
+/* ---------- QR ---------- */
+g('btnQR').onclick = () => {
+  ws();
+  const basis = g('q_url').value.trim();
+  if(!basis){ alert('Bitte zuerst die Adresse der Kunden-Seite eintragen.'); return; }
+  const url = D.workshop.code ? basis + (basis.includes('?')?'&':'?') + 'code=' + encodeURIComponent(D.workshop.code) : basis;
+  const box = g('qr'); box.innerHTML = '';
+  if(typeof QRCode === 'undefined'){ box.innerHTML = '<p class="mini">QR-Bibliothek nicht geladen (offline?). Adresse: '+url+'</p>'; return; }
+  new QRCode(box, {text:url, width:260, height:260, correctLevel:QRCode.CorrectLevel.M});
+  const p = document.createElement('p'); p.className='mini'; p.style.wordBreak='break-all'; p.textContent = url;
+  box.appendChild(p);
+  const b = document.createElement('button'); b.className='btn sek'; b.textContent='Rechtsklick auf den Code → Bild speichern';
+  b.disabled = true; b.style.opacity=.7; box.appendChild(b);
+};
+
+laden();
+</script>
+</body>
+</html>

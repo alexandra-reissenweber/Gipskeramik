@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gießformen auswählen</title>
+<style>
+:root{
+  --bg:#f6f4f1; --card:#fff; --ink:#22201d; --muted:#6d6660;
+  --line:#e3ddd6; --accent:#7a6a55; --accent-d:#5c4f3f;
+  --ok:#3f7d4e; --warn:#b8791f; --stop:#b3392f;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:120px; -webkit-text-size-adjust:100%;
+}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 16px;position:sticky;top:0;z-index:20}
+header .kopf{display:flex;align-items:center;gap:14px}
+header img.logo{height:46px;width:auto;flex:0 0 auto}
+header h1{margin:0;font-size:20px}
+header p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.gate img.logo{max-width:180px;height:auto;margin:0 auto 16px;display:block}
+main{max-width:900px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 0;max-width:900px;margin:0 auto;-webkit-overflow-scrolling:touch}
+.tabs button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px;border-radius:999px;font-size:16px;cursor:pointer;font-family:inherit}
+.tabs button[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.card.gewaehlt{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.card.weg{opacity:.62}
+.card .bild{aspect-ratio:1/1;background:#ece7e1 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:#b6ada3;font-size:34px}
+.card .txt{padding:10px 12px;flex:1}
+.card h3{margin:0 0 4px;font-size:16px;line-height:1.25}
+.card .meta{color:var(--muted);font-size:13px;margin:0}
+.card .pkt{display:inline-block;margin-top:6px;background:#efe9e1;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600}
+.card .bestand{margin:6px 0 0;font-size:13px;color:var(--muted);line-height:1.35}
+.card .bestand.voll{color:var(--warn);font-weight:600}
+.card .bestand.weg{color:var(--stop);font-weight:600}
+.zeile{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding:8px}
+.zeile button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:22px;line-height:1;cursor:pointer;color:var(--ink);font-family:inherit}
+.zeile button:disabled{opacity:.35;cursor:not-allowed}
+.zeile .anz{flex:1;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.leer{color:var(--muted);text-align:center;padding:40px 10px}
+.balken{height:12px;border-radius:999px;background:#e6e0d8;overflow:hidden;position:relative}
+.balken i{display:block;height:100%;background:var(--ok);transition:width .25s}
+.balken.tol i{background:var(--warn)}
+footer{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:20}
+.fwrap{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.fwrap .info{flex:1;min-width:0}
+.fwrap .info b{font-size:17px}
+.fwrap .info small{display:block;color:var(--muted)}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:14px 18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--accent-d)}
+.btn.sek{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.hinweis{background:#fff5e3;border:1px solid #e8d3a8;border-radius:var(--r);padding:12px 14px;margin:0 0 14px;font-size:15px}
+.hinweis.stop{background:#fdecea;border-color:#f0bfb9}
+.hinweis.info{background:#eef3ee;border-color:#cfdccf}
+.gesamt{display:flex;gap:10px;background:var(--accent);color:#fff;border-radius:var(--r);padding:14px;margin-bottom:8px}
+.gesamt.dunkel{background:var(--ink)}
+.gesamt div{flex:1;text-align:center;min-width:0}
+.gesamt b{display:block;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.gesamt span{font-size:13px;opacity:.85}
+.mini{color:var(--muted);font-size:14px;margin:0 0 14px}
+.liste{display:flex;flex-direction:column;gap:10px}
+.zl{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px;display:flex;align-items:center;gap:12px}
+.zl .tb{width:56px;height:56px;border-radius:9px;background:#ece7e1 center/cover no-repeat;flex:0 0 auto}
+.zl .tx{flex:1;min-width:0}
+.zl .tx b{display:block;font-size:17px;line-height:1.25}
+.zl .tx span{display:block;color:var(--muted);font-size:14px}
+.zl .tx .fertig{color:var(--ok);font-weight:600}
+.zl .tx .swtxt{color:var(--ink);font-weight:600}
+.zl .mal{background:#efe9e1;border-radius:999px;padding:0 8px;font-size:15px}
+.zl .st{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.zl .st button{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:20px;line-height:1;cursor:pointer;color:var(--ink);font-family:inherit}
+.zl .st button:disabled{opacity:.35}
+.zl .st .anz{min-width:22px;text-align:center;font-weight:700}
+
+/* ---- Schwarz-Umschalter & Rechner ---- */
+.schwarz{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:0 0 14px}
+.schwarz.an{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+.schwarz .kopfz{display:flex;align-items:center;gap:12px;cursor:pointer}
+.schwarz .kopfz .tx{flex:1;min-width:0}
+.schwarz .kopfz b{display:block;font-size:16px}
+.schwarz .kopfz small{color:var(--muted);font-size:13px}
+.sw{width:54px;height:31px;border-radius:999px;background:#d9d2ca;position:relative;flex:0 0 auto;transition:.2s}
+.sw i{position:absolute;top:3px;left:3px;width:25px;height:25px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.schwarz.an .sw{background:var(--ink)}
+.schwarz.an .sw i{left:26px}
+.swbody{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.rechner{background:#f6f4f1;border-radius:10px;padding:10px 12px;margin-top:10px}
+.rechner label{display:block;font-size:14px;color:var(--muted);margin-bottom:5px}
+.rechner .ein{display:flex;align-items:center;gap:8px}
+.rechner input{width:110px;padding:10px;border:1px solid var(--line);border-radius:9px;font:inherit;text-align:right;background:#fff;color:var(--ink)}
+.rechner .erg{margin:9px 0 0;font-size:15px;line-height:1.5}
+.rechner .erg b{font-variant-numeric:tabular-nums}
+
+.gate{max-width:460px;margin:60px auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:24px;text-align:center}
+.gate input{width:100%;padding:14px;font-size:20px;text-align:center;border:1px solid var(--line);border-radius:10px;margin:14px 0;font-family:inherit}
+.gate input.code{text-transform:uppercase}
+.hide{display:none!important}
+.laden{position:fixed;inset:0;background:rgba(246,244,241,.7);display:flex;align-items:center;justify-content:center;z-index:50;font-weight:600}
+@media print{footer,.tabs,.noprint{display:none!important}header{position:static;border:0;padding:0 0 10px}body{padding:0;background:#fff}}
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate hide">
+  <img id="gateLogo" class="logo hide" alt="">
+  <h2 id="gateTitel">Workshop-Code</h2>
+  <p id="gateText">Bitte gib den Code ein, den du im Workshop bekommen hast.</p>
+  <input id="gateEingabe" class="code" inputmode="text" autocomplete="off" aria-label="Eingabe">
+  <button class="btn" id="gateBtn" style="width:100%">Weiter</button>
+  <p id="gateFehler" style="color:var(--stop);min-height:22px;margin:10px 0 0"></p>
+</div>
+
+<div id="app" class="hide">
+  <header>
+    <div class="kopf">
+      <img id="logo" class="logo hide" alt="">
+      <div>
+        <h1 id="titel">Gießformen</h1>
+        <p id="untertitel"></p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+  <main><div id="inhalt"></div></main>
+
+  <footer>
+    <div class="fwrap">
+      <div class="info">
+        <b id="pKopf">7 Punkte frei</b>
+        <small id="pText">Wähle deine Formen aus.</small>
+        <div class="balken" id="balken" style="margin-top:6px"><i style="width:0"></i></div>
+      </div>
+      <button class="btn" id="btnAuswahl">Meine Auswahl</button>
+    </div>
+  </footer>
+</div>
+
+<div id="laden" class="laden hide">einen Moment…</div>
+
+<script>
+/* ================================================================
+   Daten. Beim Ein-Datei-Export der Verwaltung wird die Zeile ersetzt.
+   ================================================================ */
+const EINGEBETTET = null; /* DATEN-PLATZHALTER – wird beim Ein-Datei-Export ersetzt */
+
+const S = {
+  daten:null, tab:null,
+  meine:{},      // meine Formen im aktuellen Durchlauf
+  alle:{},       // meine Formen über alle Durchläufe (zählt für die Punkte)
+  belegt:{},     // von allen Kundinnen reserviert, aktueller Durchlauf
+  durchlauf:1, online:false, name:'', geraet:'', verbindungsfehler:'', vergeben:{},
+  schwarz:false  // Umschalter: schwarz einfärben (Powder Compound)
+};
+
+const g = id => document.getElementById(id);
+const nz = n => Number(n)||0;
+const fz = (n,k) => nz(n).toLocaleString('de-DE',{maximumFractionDigits:k===undefined?2:k});
+const esc = t => String(t==null?'':t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function warten(an){ g('laden').classList.toggle('hide', !an); }
+
+/* ================= Start ================= */
+async function start(){
+  let d = EINGEBETTET;
+  if(!d){
+    try{ const r = await fetch('formen.json?v='+Date.now()); if(r.ok) d = await r.json(); }catch(e){}
+  }
+  if(!d){
+    document.body.innerHTML = '<div class="gate"><h2>Keine Daten gefunden</h2><p>Die Datei <code>formen.json</code> liegt nicht neben dieser Seite.</p></div>';
+    return;
+  }
+  S.daten = d;
+  const w = d.workshop||{};
+  document.title = w.titel || 'Gießformen auswählen';
+  if(w.logo){
+    g('gateLogo').src = g('logo').src = w.logo;
+    g('gateLogo').classList.remove('hide'); g('logo').classList.remove('hide');
+  }
+  const sb = w.supabase||{};
+  S.online = !!(sb.url && sb.key);
+
+  // Gerätekennung (bleibt auf dem Handy gespeichert)
+  S.geraet = localStorage.getItem('gips_geraet') || (Math.random().toString(36).slice(2)+Date.now().toString(36));
+  localStorage.setItem('gips_geraet', S.geraet);
+  S.name = localStorage.getItem('gips_name_'+codeKey()) || '';
+  S.schwarz = localStorage.getItem('gips_schwarz_'+codeKey()) === '1';
+
+  // Zeitraum
+  const jetzt = new Date();
+  const von = w.start ? new Date(w.start+'T00:00:00') : null;
+  const bis = w.ende  ? new Date(w.ende +'T23:59:59') : null;
+  if((von && jetzt < von) || (bis && jetzt > bis)){
+    zeigeGate('Nicht verfügbar',
+      bis && jetzt > bis ? 'Dieser Workshop ist beendet. Die Auswahl ist nicht mehr möglich.'
+                         : 'Diese Seite wird erst zum Workshop freigeschaltet ('+(w.start||'')+').', null);
+    return;
+  }
+  schrittCode();
+}
+
+function codeKey(){ return ((S.daten.workshop||{}).code || 'OHNE-CODE').toUpperCase(); }
+
+function zeigeGate(titel, text, aktion, wert, platzhalter, klasse){
+  g('gate').classList.remove('hide'); g('app').classList.add('hide');
+  g('gateTitel').textContent = titel; g('gateText').textContent = text;
+  g('gateFehler').textContent = '';
+  const inp = g('gateEingabe'), btn = g('gateBtn');
+  if(!aktion){ inp.classList.add('hide'); btn.classList.add('hide'); return; }
+  inp.classList.remove('hide'); btn.classList.remove('hide');
+  inp.className = klasse||''; inp.value = wert||''; inp.placeholder = platzhalter||'';
+  btn.onclick = () => aktion(inp.value.trim());
+  inp.onkeydown = e => { if(e.key==='Enter') btn.click(); };
+  setTimeout(()=>inp.focus(),100);
+}
+
+function schrittCode(){
+  const code = ((S.daten.workshop||{}).code||'').trim();
+  if(!code) return schrittName();
+  const ausUrl = new URLSearchParams(location.search).get('code') || '';
+  if(ausUrl.toUpperCase() === code.toUpperCase() || localStorage.getItem('gips_code_ok') === code.toUpperCase()){
+    localStorage.setItem('gips_code_ok', code.toUpperCase());
+    return schrittName();
+  }
+  zeigeGate('Workshop-Code', 'Bitte gib den Code ein, den du im Workshop bekommen hast.', v => {
+    if(v.toUpperCase() === code.toUpperCase()){
+      localStorage.setItem('gips_code_ok', code.toUpperCase()); schrittName();
+    } else g('gateFehler').textContent = 'Code stimmt nicht.';
+  }, '', '', 'code');
+}
+
+function schrittName(){
+  if(!S.online || S.name) return los();
+  zeigeGate('Wie heißt du?', 'Damit deine Formen für dich reserviert werden.', v => {
+    if(v.length < 2){ g('gateFehler').textContent = 'Bitte trag deinen Vornamen ein.'; return; }
+    S.name = v; localStorage.setItem('gips_name_'+codeKey(), v); los();
+  }, '', 'Vorname');
+}
+
+async function los(){
+  g('gate').classList.add('hide'); g('app').classList.remove('hide');
+  const w = S.daten.workshop||{};
+  g('titel').textContent = w.titel || 'Gießformen auswählen';
+  g('untertitel').textContent = [w.hinweis, S.name ? 'Hallo '+S.name+'!' : ''].filter(Boolean).join(' · ');
+  if(!S.online){
+    try{ S.meine = S.alle = S.belegt = JSON.parse(localStorage.getItem('gips_auswahl_'+codeKey())) || {}; }catch(e){}
+  }
+  tabsBauen();
+  if(S.online){ warten(true); await ladeLage(); warten(false); }
+  zeige();
+  if(S.online){
+    setInterval(ladeLage, 15000);
+    document.addEventListener('visibilitychange', () => { if(!document.hidden) ladeLage(); });
+  }
+}
+
+/* ================= Supabase ================= */
+async function rpc(fn, params){
+  const sb = S.daten.workshop.supabase;
+  const r = await fetch(sb.url.replace(/\/+$/,'') + '/rest/v1/rpc/' + fn, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':sb.key,'Authorization':'Bearer '+sb.key},
+    body: JSON.stringify(params)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function ladeLage(){
+  if(!S.online) return;
+  try{
+    const d = await rpc('gips_lage', {p_code:codeKey(), p_geraet:S.geraet});
+    const neu = d.durchlauf !== S.durchlauf;
+    S.durchlauf = d.durchlauf;
+    S.belegt = d.belegt||{}; S.meine = d.meine||{}; S.alle = d.meine_alle||{};
+    S.verbindungsfehler = '';
+    if(neu) S.vergeben = {};
+  }catch(e){
+    S.verbindungsfehler = 'Keine Verbindung – die Anzeige ist vielleicht nicht aktuell.';
+  }
+  zeige();
+}
+
+/* ================= Punkte & Bestand ================= */
+function budget(){
+  const w = S.daten.workshop||{};
+  const proPunkt = nz(w.punkt_gramm)||100, maxG = nz(w.budget_g)||700, tol = nz(w.toleranz_prozent);
+  return {proPunkt, maxG, tol, pBudget:maxG/proPunkt, pMax:(maxG*(1+tol/100))/proPunkt};
+}
+// 1 Punkt = 100 g, nur 0,5er-Schritte: Rest ab 50 g gibt einen halben Punkt
+function punkteAusGramm(gramm, proPunkt){ return Math.floor(nz(gramm)/((proPunkt||100)/2) + 1e-9)/2; }
+function punkteVon(f){
+  const b = budget();
+  return (f.punkte===undefined||f.punkte===null||f.punkte==='') ? punkteAusGramm(f.gips_g,b.proPunkt) : nz(f.punkte);
+}
+function formen(){ return (S.daten.formen||[]).filter(f => f.aktiv !== false); }
+function form(id){ return formen().find(f => f.id === id); }
+function summe(){
+  let p=0,gi=0,wa=0,n=0;
+  for(const id in S.alle){
+    const f = form(id), a = nz(S.alle[id]); if(!f||a<=0) continue;
+    p += punkteVon(f)*a; gi += nz(f.gips_g)*a; wa += nz(f.wasser_ml)*a; n += a;
+  }
+  return {punkte:p, gips:gi, wasser:wa, anzahl:n};
+}
+function bestandVon(f){
+  const b = Number(f.bestand);
+  return (f.bestand===undefined||f.bestand===null||f.bestand===''||!isFinite(b)||b<=0) ? null : Math.floor(b);
+}
+function freiVon(f){
+  const b = bestandVon(f);
+  return b === null ? null : Math.max(0, b - nz(S.belegt[f.id]));
+}
+// Grenze: das Ergebnis darf höchstens 700 g + Toleranz sein.
+// Geprüft wird in Punkten UND in Gramm – die Gramm laufen im Hintergrund mit,
+// damit gerundete Punkte das Pulverbudget nicht heimlich sprengen.
+function passtNoch(f){
+  const b = budget(), s = summe();
+  return s.punkte + punkteVon(f) <= b.pMax + 1e-9
+      && s.gips   + nz(f.gips_g)  <= b.maxG * (1 + b.tol/100) + 1e-9;
+}
+function nochDa(f){ const fr = freiVon(f); return fr === null || fr > 0; }
+
+/* ================= Schwarz einfärben (Powder Compound) =================
+   Herstellerangabe:
+   - ca. 30 % Powder Compound, bezogen auf die Gießpulvermenge (weißes Pulver)
+   - dünner anrühren: Verhältnis 2,5 : 1 (Pulver : Wasser), bezogen auf das
+     weiße Gießpulver – das Compound zählt beim Wasser NICHT mit.
+   Beide Werte sind in der Verwaltung überschreibbar
+   (workshop.schwarz_prozent / workshop.schwarz_verhaeltnis).
+   ====================================================================== */
+function schwarzCfg(){
+  const w = S.daten.workshop||{};
+  return {
+    anteil: nz(w.schwarz_prozent)      || 30,
+    verh:   nz(w.schwarz_verhaeltnis)  || 2.5
+  };
+}
+function schwarzRechnung(weissG){
+  const c = schwarzCfg(), G = nz(weissG);
+  return {
+    weiss: G,
+    compound: G * c.anteil/100,
+    wasser: G / c.verh,
+    pulverGesamt: G * (1 + c.anteil/100),
+    anteil: c.anteil,
+    verh: c.verh
+  };
+}
+
+/* ================= Auswählen ================= */
+async function mehr(f){
+  if(!passtNoch(f) || !nochDa(f)) return;
+  if(!S.online){
+    S.meine[f.id] = nz(S.meine[f.id])+1; lokalSichern(); zeige(); return;
+  }
+  warten(true);
+  try{
+    const r = await rpc('gips_reservieren', {p_code:codeKey(), p_form:f.id, p_geraet:S.geraet, p_kunde:S.name, p_max:bestandVon(f)||0});
+    if(!r.ok) S.vergeben[f.id] = true; else delete S.vergeben[f.id];
+    await ladeLage();
+  }catch(e){ S.verbindungsfehler = 'Das hat nicht geklappt – bitte nochmal versuchen.'; zeige(); }
+  warten(false);
+}
+async function weniger(f){
+  if(!S.online){
+    S.meine[f.id] = Math.max(0, nz(S.meine[f.id])-1); lokalSichern(); zeige(); return;
+  }
+  if(nz(S.meine[f.id]) <= 0) return;
+  warten(true);
+  try{ await rpc('gips_freigeben', {p_code:codeKey(), p_form:f.id, p_geraet:S.geraet}); await ladeLage(); }
+  catch(e){ S.verbindungsfehler = 'Das hat nicht geklappt – bitte nochmal versuchen.'; zeige(); }
+  warten(false);
+}
+function lokalSichern(){
+  S.alle = S.belegt = S.meine;
+  try{ localStorage.setItem('gips_auswahl_'+codeKey(), JSON.stringify(S.meine)); }catch(e){}
+}
+
+/* ================= Ansicht ================= */
+function tabsBauen(){
+  const kats = (S.daten.kategorien||[]).slice().sort((a,b)=>nz(a.sort)-nz(b.sort));
+  const liste = kats.length ? kats : [{id:'alle', name:'Alle Formen'}];
+  if(!S.tab) S.tab = liste[0].id;
+  const nav = g('tabs'); nav.innerHTML = '';
+  liste.concat([{id:'__auswahl', name:'★ Meine Auswahl'}]).forEach(k => {
+    const b = document.createElement('button');
+    b.textContent = k.name; b.setAttribute('role','tab'); b.dataset.id = k.id;
+    b.onclick = () => { S.tab = k.id; zeige(); window.scrollTo(0,0); };
+    nav.appendChild(b);
+  });
+}
+
+function zeige(){
+  [...g('tabs').children].forEach(b => b.setAttribute('aria-selected', b.dataset.id===S.tab ? 'true':'false'));
+  if(S.tab === '__auswahl') zeigeAuswahl(); else zeigeKategorie(S.tab);
+  fussLeiste();
+}
+
+function meldungen(){
+  const s = summe(), b = budget();
+  let h = '';
+  if(S.verbindungsfehler) h += `<p class="hinweis stop">${esc(S.verbindungsfehler)}</p>`;
+  if(S.online && S.durchlauf > 1) h += `<p class="hinweis info"><b>${S.durchlauf}. Durchlauf</b> – alle Formen sind wieder frei. Deine Punkte laufen weiter.</p>`;
+  if(formen().length && formen().every(f => !passtNoch(f)))
+    h += `<p class="hinweis stop"><b>Deine Punkte sind aufgebraucht.</b> Nimm eine Form heraus, wenn du stattdessen etwas anderes gießen möchtest.</p>`;
+  return h;
+}
+
+function zeigeKategorie(kid){
+  const hatKats = (S.daten.kategorien||[]).length > 0;
+  const liste = formen().filter(f => !hatKats || kid==='alle' || f.kategorie===kid).sort((a,b)=>nz(a.sort)-nz(b.sort));
+  const el = g('inhalt');
+  if(!liste.length){ el.innerHTML = meldungen() + '<p class="leer">In diesem Bereich sind noch keine Formen hinterlegt.</p>'; return; }
+  el.innerHTML = meldungen() + '<div class="grid"></div>';
+  const grid = el.querySelector('.grid');
+  liste.forEach(f => grid.appendChild(karte(f)));
+}
+
+function karte(f){
+  const p = punkteVon(f), a = nz(S.meine[f.id]), frei = freiVon(f), anz = bestandVon(f);
+  const d = document.createElement('div');
+  d.className = 'card' + (a>0 ? ' gewaehlt' : '') + (frei===0 && a===0 ? ' weg' : '');
+  d.innerHTML = `
+    <div class="bild" ${f.bild?`style="background-image:url('${f.bild}')"`:''}>${f.bild?'':'◻'}</div>
+    <div class="txt">
+      <h3>${esc(f.name||'Ohne Namen')}</h3>
+      <p class="meta">${fz(f.gips_g,0)} g Pulver · ${fz(f.wasser_ml,0)} ml Wasser</p>
+      ${f.hinweis?`<p class="meta" style="margin-top:4px">${esc(f.hinweis)}</p>`:''}
+      <span class="pkt">${fz(p)} ${p===1?'Punkt':'Punkte'}</span>
+      <p class="bestand ${bestandKlasse(f)}">${bestandText(f)}</p>
+    </div>
+    <div class="zeile">
+      <button class="minus" aria-label="weniger">−</button>
+      <span class="anz">${a}</span>
+      <button class="plus" aria-label="mehr">+</button>
+    </div>`;
+  d.querySelector('.minus').disabled = a <= 0;
+  d.querySelector('.plus').disabled  = !passtNoch(f) || !nochDa(f);
+  d.querySelector('.minus').onclick = () => weniger(f);
+  d.querySelector('.plus').onclick  = () => mehr(f);
+  return d;
+}
+
+function bestandKlasse(f){
+  const frei = freiVon(f), a = nz(S.meine[f.id]);
+  if(frei === null) return '';
+  if(frei === 0 && a === 0) return 'weg';
+  if(frei === 0) return 'voll';
+  return '';
+}
+function bestandText(f){
+  const anz = bestandVon(f), frei = freiVon(f), a = nz(S.meine[f.id]);
+  if(anz === null) return '';
+  if(S.vergeben[f.id] && frei === 0)
+    return 'Gerade von jemand anderem reserviert. Im nächsten Durchlauf wird sie wieder frei.';
+  if(frei === 0 && a === 0)
+    return anz === 1 ? 'Schon vergeben – im nächsten Durchlauf wieder frei.'
+                     : `Alle ${anz} gerade in Benutzung – im nächsten Durchlauf wieder frei.`;
+  if(frei === 0) return a >= anz ? (anz===1 ? 'Du hast sie – mehr gibt es nicht.' : `Du hast alle ${anz} – mehr gibt es nicht.`) : 'Gerade keine weitere frei.';
+  if(frei === anz) return anz === 1 ? '1× vorhanden' : `${anz}× vorhanden`;
+  return `noch ${frei} von ${anz} frei`;
+}
+
+/* ---- Schwarz-Block auf der Auswahl-Seite ---- */
+function schwarzBlock(gesamtGips){
+  const c = schwarzCfg();
+  const r = schwarzRechnung(gesamtGips);
+  const verhTxt = fz(c.verh,1)+' : 1';
+  let h = `<div class="schwarz ${S.schwarz?'an':''}" id="swBox">
+    <div class="kopfz" id="swKopf" role="button" tabindex="0" aria-pressed="${S.schwarz}">
+      <div class="tx">
+        <b>Schwarz einfärben</b>
+        <small>${S.schwarz ? 'Mengen unten sind auf Schwarz umgerechnet.' : 'Mit Powder Compound schwarz – hier umschalten.'}</small>
+      </div>
+      <span class="sw"><i></i></span>
+    </div>`;
+
+  if(S.schwarz){
+    h += `<div class="swbody">
+      <p class="mini" style="margin:0">
+        ${fz(c.anteil,0)} % Powder Compound auf die Gießpulvermenge. Farbpulver
+        <b>zuerst</b> ins trockene Gießpulver mischen, danach das Wasser dazu.
+        Schwarz wird dünner angerührt: ${verhTxt} – gerechnet wird dabei nur mit dem
+        weißen Gießpulver, das Compound zählt bei der Wassermenge <b>nicht</b> mit.
+      </p>
+      <div class="rechner">
+        <label for="swEin">Andere Menge ausrechnen – weißes Gießpulver eingeben:</label>
+        <div class="ein">
+          <input id="swEin" type="number" inputmode="decimal" min="0" step="10" placeholder="z. B. 150">
+          <span class="mini" style="margin:0">g</span>
+        </div>
+        <p class="erg" id="swErg"></p>
+      </div>
+    </div>`;
+  }
+  h += '</div>';
+  return h;
+}
+
+function schwarzRechnerAnbinden(vorgabe){
+  const box = g('swKopf');
+  if(box){
+    const um = () => {
+      S.schwarz = !S.schwarz;
+      try{ localStorage.setItem('gips_schwarz_'+codeKey(), S.schwarz?'1':'0'); }catch(e){}
+      zeige();
+    };
+    box.onclick = um;
+    box.onkeydown = e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); um(); } };
+  }
+  const inp = g('swEin');
+  if(!inp) return;
+  const rechne = () => {
+    const wert = nz(inp.value);
+    const r = schwarzRechnung(wert);
+    g('swErg').innerHTML = wert>0
+      ? `<b>${fz(r.weiss,0)} g</b> Gießpulver + <b>${fz(r.compound,0)} g</b> Powder Compound
+         + <b>${fz(r.wasser,0)} ml</b> Wasser`
+      : '';
+  };
+  inp.oninput = rechne;
+  rechne();
+}
+
+function zeigeAuswahl(){
+  const s = summe(), b = budget(), el = g('inhalt');
+  const c = schwarzCfg();
+  const ids = Object.keys(S.alle).filter(id => nz(S.alle[id])>0 && form(id))
+    .sort((x,y) => nz(form(x).sort) - nz(form(y).sort));
+  if(!ids.length){ el.innerHTML = meldungen() + '<p class="leer">Du hast noch nichts ausgewählt.<br>Tippe bei einer Form auf „+".</p>'; return; }
+
+  let h = meldungen() + `
+    <div class="gesamt${S.schwarz?' dunkel':''}">
+      <div><b>${fz(s.gips,0)}</b><span>g Gipspulver</span></div>
+      ${S.schwarz ? '' : `<div><b>${fz(s.wasser,0)}</b><span>ml Wasser</span></div>`}
+      <div><b>${fz(s.punkte)}</b><span>von ${fz(b.pBudget)} Punkten</span></div>
+    </div>
+    <p class="mini">Diese Seite bei der Ausgabe zeigen – dann bekommst du die passenden Formen.${S.schwarz?' Die Mengen fürs Schwarzfärben stehen bei jeder Form einzeln.':''}</p>`;
+
+  h += schwarzBlock(s.gips);
+
+  h += '<div class="liste">';
+  ids.forEach(id => {
+    const f = form(id), a = nz(S.alle[id]), jetzt = nz(S.meine[id]);
+    const gi = nz(f.gips_g)*a;
+    const rf = schwarzRechnung(gi);
+    const mengen = S.schwarz
+      ? `${fz(gi,0)} g Pulver · ${fz(rf.compound,0)} g schwarz · ${fz(rf.wasser,0)} ml Wasser · ${fz(punkteVon(f)*a)} P.`
+      : `${fz(gi,0)} g Pulver · ${fz(nz(f.wasser_ml)*a,0)} ml Wasser · ${fz(punkteVon(f)*a)} P.`;
+    h += `<div class="zl">
+      <div class="tb" ${f.bild?`style="background-image:url('${f.bild}')"`:''}></div>
+      <div class="tx">
+        <b>${esc(f.name)}${a>1?` <span class="mal">×${a}</span>`:''}</b>
+        <span${S.schwarz?` class="swtxt"`:''}>${mengen}</span>
+        ${f.hinweis?`<span>${esc(f.hinweis)}</span>`:''}
+        ${jetzt>0?'':'<span class="fertig">bereits gegossen</span>'}
+      </div>
+      ${jetzt>0?`<div class="st">
+        <button class="minus" data-id="${f.id}" aria-label="weniger">−</button>
+        <span class="anz">${jetzt}</span>
+        <button class="plus" data-id="${f.id}" aria-label="mehr">+</button>
+      </div>`:''}
+    </div>`;
+  });
+  h += '</div>';
+  el.innerHTML = h;
+
+  el.querySelectorAll('.liste .plus').forEach(x => {
+    const f = form(x.dataset.id);
+    x.disabled = !passtNoch(f) || !nochDa(f);
+    x.onclick = () => mehr(f);
+  });
+  el.querySelectorAll('.liste .minus').forEach(x => x.onclick = () => weniger(form(x.dataset.id)));
+  schwarzRechnerAnbinden(s.gips);
+}
+
+function fussLeiste(){
+  const s = summe(), b = budget();
+  const rest = Math.max(0, b.pBudget - s.punkte);
+  const nichtsMehr = formen().length && formen().every(f => !passtNoch(f));
+  g('pKopf').textContent = rest > 0 ? `noch ${fz(rest)} von ${fz(b.pBudget)} Punkten` : 'Punkte vergeben';
+  g('pText').textContent = nichtsMehr
+    ? 'Mehr geht nicht – nimm eine Form heraus, wenn du tauschen möchtest.'
+    : (rest > 0 ? 'Wähle deine Formen aus.' : 'Vielleicht passt noch etwas Kleines.');
+  const bal = g('balken');
+  bal.querySelector('i').style.width = Math.min(100, s.punkte / b.pBudget * 100) + '%';
+  bal.classList.toggle('tol', nichtsMehr);
+  g('btnAuswahl').textContent = s.anzahl ? `Auswahl (${s.anzahl})` : 'Meine Auswahl';
+}
+
+g('btnAuswahl').onclick = () => { S.tab = '__auswahl'; zeige(); window.scrollTo(0,0); };
+start();
+</script>
+</body>
+</html>
