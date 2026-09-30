@@ -237,7 +237,7 @@ function schrittCode(){
 
 function schrittName(){
   if(!S.online || S.name) return los();
-  zeigeGate('Wie heißt du?', 'Damit deine Formen für dich reserviert werden.', v => {
+  zeigeGate('Wie heißt du?', 'Damit deine Auswahl dir zugeordnet werden kann.', v => {
     if(v.length < 2){ g('gateFehler').textContent = 'Bitte trag deinen Vornamen ein.'; return; }
     S.name = v; localStorage.setItem('gips_name_'+codeKey(), v); los();
   }, '', 'Vorname');
@@ -425,7 +425,7 @@ function zeigeKategorie(kid){
 function karte(f){
   const p = punkteVon(f), a = nz(S.meine[f.id]), frei = freiVon(f), anz = bestandVon(f);
   const d = document.createElement('div');
-  d.className = 'card' + (a>0 ? ' gewaehlt' : '') + (frei===0 && a===0 ? ' weg' : '');
+  d.className = 'card' + (a>0 ? ' gewaehlt' : '');
   d.innerHTML = `
     <div class="bild" ${f.bild?`style="background-image:url('${f.bild}')"`:''}>${f.bild?'':'◻'}</div>
     <div class="txt">
@@ -447,24 +447,12 @@ function karte(f){
   return d;
 }
 
-function bestandKlasse(f){
-  const frei = freiVon(f), a = nz(S.meine[f.id]);
-  if(frei === null) return '';
-  if(frei === 0 && a === 0) return 'weg';
-  if(frei === 0) return 'voll';
-  return '';
-}
+function bestandKlasse(f){ return ''; }
+// Nur Anzahl anzeigen – keine Reservierung (Formen werden vor Ort übergeben)
 function bestandText(f){
-  const anz = bestandVon(f), frei = freiVon(f), a = nz(S.meine[f.id]);
+  const anz = bestandVon(f);
   if(anz === null) return '';
-  if(S.vergeben[f.id] && frei === 0)
-    return 'Gerade von jemand anderem reserviert. Im nächsten Durchlauf wird sie wieder frei.';
-  if(frei === 0 && a === 0)
-    return anz === 1 ? 'Schon vergeben – im nächsten Durchlauf wieder frei.'
-                     : `Alle ${anz} gerade in Benutzung – im nächsten Durchlauf wieder frei.`;
-  if(frei === 0) return a >= anz ? (anz===1 ? 'Du hast sie – mehr gibt es nicht.' : `Du hast alle ${anz} – mehr gibt es nicht.`) : 'Gerade keine weitere frei.';
-  if(frei === anz) return anz === 1 ? '1× vorhanden' : `${anz}× vorhanden`;
-  return `noch ${frei} von ${anz} frei`;
+  return anz === 1 ? '1× vorhanden' : `${anz}× vorhanden`;
 }
 
 /* ---- Schwarz-Block auf der Auswahl-Seite ---- */
